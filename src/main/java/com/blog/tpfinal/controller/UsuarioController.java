@@ -1,14 +1,18 @@
 package com.blog.tpfinal.controller;
 
+import com.blog.tpfinal.dto.LoginRequest;
+import com.blog.tpfinal.dto.UsuarioDTO;
 import com.blog.tpfinal.model.Usuario;
 import com.blog.tpfinal.service.UsuarioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/usuarios")
@@ -19,29 +23,34 @@ public class UsuarioController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('READ')")
-    public ResponseEntity<List<Usuario>> findAll() {
-        return ResponseEntity.ok(usuarioService.findAll());
+    public ResponseEntity<List<UsuarioDTO>> findAll() {
+        List<UsuarioDTO> usuarios = usuarioService.findAll()
+                .stream()
+                .map(u -> new UsuarioDTO(u.getId(), u.getEmail(), u.getRol().getNombre().name()))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(usuarios);
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('READ')")
-    public ResponseEntity<Usuario> findById(@PathVariable Long id) {
+    public ResponseEntity<UsuarioDTO> findById(@PathVariable Long id) {
         return usuarioService.findById(id)
+                .map(u -> new UsuarioDTO(u.getId(), u.getEmail(), u.getRol().getNombre().name()))
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping
-    @PreAuthorize("hasAuthority('CREATE')")
-    public ResponseEntity<Usuario> save(@RequestBody Usuario usuario) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(usuarioService.save(usuario));
-    }
-
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('UPDATE')")
-    public ResponseEntity<Usuario> update(@PathVariable Long id, @RequestBody Usuario usuario) {
+    public ResponseEntity<UsuarioDTO> update(@PathVariable Long id, @RequestBody LoginRequest request) {
         return usuarioService.findById(id)
-                .map(u -> ResponseEntity.ok(usuarioService.save(usuario)))
+                .map(u -> {
+                    u.setEmail(request.getEmail());
+                    u.setPassword(new BCryptPasswordEncoder().encode(request.getPassword()));
+                    Usuario updated = usuarioService.save(u);
+                    return new UsuarioDTO(updated.getId(), updated.getEmail(), updated.getRol().getNombre().name());
+                })
+                .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
