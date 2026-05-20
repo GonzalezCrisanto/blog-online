@@ -1,7 +1,7 @@
 package com.blog.tpfinal.controller;
 
-import com.blog.tpfinal.model.PosteoBlog;
-import com.blog.tpfinal.service.PosteoBlogService;
+import com.blog.tpfinal.model.AutorBlog;
+import com.blog.tpfinal.service.AutorBlogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,44 +11,44 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/posteos")
+@RequestMapping("/api/autores")
 @RequiredArgsConstructor
-public class PosteoBlogController {
+public class AutorBlogController {
 
-    private final PosteoBlogService posteoBlogService;
+    private final AutorBlogService autorBlogService;
 
     @GetMapping
     @PreAuthorize("hasAuthority('READ')")
-    public ResponseEntity<List<PosteoBlog>> findAll() {
-        return ResponseEntity.ok(posteoBlogService.findAll());
+    public ResponseEntity<List<AutorBlog>> findAll() {
+        return ResponseEntity.ok(autorBlogService.findAll());
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('READ')")
-    public ResponseEntity<PosteoBlog> findById(@PathVariable Long id) {
-        return posteoBlogService.findById(id)
+    public ResponseEntity<AutorBlog> findById(@PathVariable Long id) {
+        return autorBlogService.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
     @PreAuthorize("hasAuthority('CREATE')")
-    public ResponseEntity<PosteoBlog> save(@RequestBody PosteoBlog posteoBlog) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(posteoBlogService.save(posteoBlog));
+    public ResponseEntity<AutorBlog> save(@RequestBody AutorBlog autorBlog) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(autorBlogService.save(autorBlog));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('UPDATE')")
-    public ResponseEntity<PosteoBlog> update(@PathVariable Long id, @RequestBody PosteoBlog posteoBlog) {
-        return posteoBlogService.findById(id)
-                .map(p -> ResponseEntity.ok(posteoBlogService.save(posteoBlog)))
+    public ResponseEntity<AutorBlog> update(@PathVariable Long id, @RequestBody AutorBlog autorBlog) {
+        return autorBlogService.findById(id)
+                .map(a -> ResponseEntity.ok(autorBlogService.save(autorBlog)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('DELETE')")
     public ResponseEntity<Void> deleteById(@PathVariable Long id) {
-        posteoBlogService.deleteById(id);
+        autorBlogService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 }
